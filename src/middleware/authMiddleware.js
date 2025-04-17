@@ -6,24 +6,30 @@ import { StatusCodes } from "http-status-codes";
 // Middleware to authenticate user
 export const authenticateUser = async (req, res, next) => {
   try {
-    // Retrieve token from cookies or Authorization header
     const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
+    console.log("Token:", token); // Debugging line
+
     if (!token) {
       throw new AppError("Authentication token missing", StatusCodes.UNAUTHORIZED);
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ where: { id: decoded.userId } });
+    console.log("Decoded Token:", decoded); // Debugging line
 
+    const user = await User.findOne({ where: { id: decoded.userId } });
     if (!user) {
       throw new AppError("User not found", StatusCodes.UNAUTHORIZED);
     }
 
-    req.user = user; // Attach user to request object
+    req.user = user;
     next();
   } catch (error) {
-    next(new AppError("Invalid or expired token", StatusCodes.UNAUTHORIZED));
+    console.error("Authentication Error:", error); // Debugging line
+    if (error.name === "TokenExpiredError") {
+      next(new AppError("Token has expired. Please log in again.", StatusCodes.UNAUTHORIZED));
+    } else {
+      next(new AppError("Invalid or expired token", StatusCodes.UNAUTHORIZED));
+    }
   }
 };
 

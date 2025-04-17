@@ -2,6 +2,7 @@ import Review from "../models/Review.js";
 import Enrollment from "../models/Enrollment.js";
 import AppError from "../utils/AppError.js";
 import { StatusCodes } from "http-status-codes";
+import User from "../models/User.js";
 
 export const createReview = async (req, res, next) => {
   try {

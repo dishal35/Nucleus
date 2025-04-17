@@ -7,6 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import sendVerificationMail from "../utils/sendVerification.js";
 import crypto from "crypto";
 import Otp from "../models/Otp.js";
+import jwt from "jsonwebtoken";
 
 export const signup = async (req, res, next) => {
   try {
@@ -105,45 +106,43 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      throw new AppError("Email and password are required", StatusCodes.BAD_REQUEST);
-    }
-
-    // Find the user by email
+    // Validate user credentials (example logic)
     const user = await User.findOne({ where: { email } });
-
-    if (!user) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new AppError("Invalid email or password", StatusCodes.UNAUTHORIZED);
     }
 
-    // Compare passwords
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      throw new AppError("Invalid email or password", StatusCodes.UNAUTHORIZED);
-    }
+    // Generate tokens
+    const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
 
-    // Check if the user is verified
-    if (!user.isVerifiedEmail) {
-      throw new AppError(
-        "Your email is not verified. Please verify your email before logging in.",
-        StatusCodes.FORBIDDEN
-      );
-    }
+    const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
 
-    // Generate JWT token and set it as a cookie
-    const token = generateTokenAndSetCookie(user.id, res);
+    // Set tokens as cookies
+    res.cookie("jwt", accessToken, {
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+    });
 
-    // Send success response with user data
-    const userData = {
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-    };
-    sendResponse(res, StatusCodes.OK, true, "Login successful", { ...userData, token });
+    res.cookie("refreshToken", refreshToken, {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV !== "development",
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Login successful",
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
-    console.error("Login error:", error);
     next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
   }
 };

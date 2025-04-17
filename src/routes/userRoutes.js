@@ -21,8 +21,8 @@ router.post("/login", login); // Login is open to all
 
 // Protected routes
 router.post("/logout", authenticateUser, logout); // Only authenticated users can log out
-router.patch("/verify-email", authenticateUser, blockIfVerified, verifyEmail); // For API calls
-router.get("/verify-email", authenticateUser, blockIfVerified, verifyEmail); // For email link clicks
+router.patch("/verify-email", verifyEmail); // For API calls
+router.get("/verify-email", verifyEmail); // For email link clicks
 
 // Forgot and reset password
 router.post("/forgot-pass", sendOTP); // Open to all

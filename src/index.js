@@ -9,9 +9,12 @@ import otpRoutes from "./routes/otpRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(errorHandler);
 
 const initializeApp = async () => {
@@ -23,7 +26,7 @@ const initializeApp = async () => {
     defineAssociations();
 
     // Sync models
-    await sequelize.sync({ alter: true });
+    await sequelize.sync(); // Changed to avoid deadlocks
     console.log("✅ Synced successfully.");
   } catch (error) {
     console.error("❌ Initialization error:", error);
@@ -37,4 +40,5 @@ app.use("/api/otp", otpRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/enrollment", enrollmentRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/auth", authRoutes);
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
