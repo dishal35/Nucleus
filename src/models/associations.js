@@ -18,6 +18,8 @@ const defineAssociations = () => {
   // Existing associations
   User.hasMany(Course, { foreignKey: "instructorId", as: "courses" });
   Course.belongsTo(User, { foreignKey: "instructorId", as: "instructor" });
+  Enrollment.belongsTo(User, { foreignKey: "userId", as: "user" });
+  Enrollment.belongsTo(Course, { foreignKey: "courseId", as: "course" });
 };
 
 export default defineAssociations;

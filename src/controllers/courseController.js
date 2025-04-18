@@ -2,6 +2,7 @@ import Course from "../models/Course.js";
 import AppError from "../utils/AppError.js";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
+import Enrollment from "../models/Enrollment.js";
 
 export const createCourse = async (req, res, next) => {
   try {
@@ -116,6 +117,38 @@ export const deleteCourse = async (req, res, next) => {
     });
   } catch (error) {
     next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
+  }
+};
+
+export const getEnrolledCourses = async (req, res, next) => {
+  try {
+    // Fetch courses where the user is enrolled
+    const enrolledCourses = await Enrollment.findAll({
+      where: { userId: req.user.id },
+      include: [
+        {
+          model: Course,
+          as: "course",
+          attributes: ["id", "title", "description"], // Fetch only necessary fields
+        },
+      ],
+    });
+
+    if (!enrolledCourses || enrolledCourses.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "You are not enrolled in any courses.",
+        data: [],
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Enrolled courses retrieved successfully.",
+      data: enrolledCourses.map((enrollment) => enrollment.course),
+    });
+  } catch (error) {
+    next(new AppError(error.message || "Internal Server Error", 500));
   }
 };
 

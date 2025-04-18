@@ -2,7 +2,7 @@ import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
 import AppError from "../utils/AppError.js";
 import { StatusCodes } from "http-status-codes";
-
+import { sendToQueue } from "../utils/rabbitmq.js"; 
 export const enrollInCourse = async (req, res, next) => {
   try {
     const { courseId } = req.body;
@@ -27,13 +27,42 @@ export const enrollInCourse = async (req, res, next) => {
       userId: req.user.id,
       courseId,
     });
-
+    
+    const emailData = {
+      to: req.user.email,
+      subject: "Enrollment Confirmation",
+      text: `You have successfully enrolled in the course: ${course.title}`,
+    };
+    await sendToQueue("emailQueue", emailData); 
     res.status(StatusCodes.CREATED).json({
       success: true,
-      message: "Enrolled in course successfully",
+      message: "Enrolled in course successfully and email sent",
       data: enrollment,
     });
   } catch (error) {
     next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
   }
 };
+
+export const unenrollFromCourse = async (req, res, next) => {
+  try {
+    const { courseId } = req.params;
+
+    // Ensure the enrollment exists
+    const enrollment = await Enrollment.findOne({
+      where: { userId: req.user.id, courseId },
+    });
+
+    if (!enrollment) {
+      throw new AppError("You are not enrolled in this course", StatusCodes.NOT_FOUND);
+    }
+    await enrollment.destroy();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Unenrolled from course successfully",
+    });
+  } catch (error) {
+    next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
+  }
+}

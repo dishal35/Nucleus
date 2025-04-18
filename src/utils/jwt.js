@@ -9,12 +9,12 @@ dotenv.config();
 export const generateTokenAndSetCookie = (userId, res) => {
   // Generate access token (short-lived)
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "15m", // Short-lived access token
+    expiresIn: "7d", // Short-lived access token
   });
 
   // Generate refresh token (long-lived)
   const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d", // Long-lived refresh token
+    expiresIn: "30d", // Long-lived refresh token
   });
 
   // Set access token as a cookie
