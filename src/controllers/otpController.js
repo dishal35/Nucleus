@@ -1,6 +1,5 @@
 import Otp from '../models/Otp.js';
 import randomstring from 'randomstring';
-import sendOtpMail from '../utils/sendOtp.js';
 import { Op } from 'sequelize';
 import AppError from '../utils/AppError.js';
 import sendResponse from '../utils/sendResponse.js';
@@ -21,16 +20,17 @@ export const sendOTP = async (req, res, next) => {
         const otp = generateOTP(); // Generate a 6-digit OTP
         const newOTP = await Otp.create({ email, otp });
         await newOTP.save();
-
-        // Send OTP via email
-        sendOtpMail(email, otp)
-            .then(() => {
-                console.log('OTP sent successfully');
-            })
-            .catch((error) => {
-                console.error('Error sending OTP:', error);
-                return res.status(500).json({ success: false, error: 'Failed to send OTP' });
-            });
+        
+        const expirationTime = new Date(Date.now() + 10 * 60 * 1000); 
+        await Otp.update({ expiresAt: expirationTime }, { where: { email } });
+       
+       
+        const emailData = {
+            to: req.user.email,
+            subject: "Reset Password OTP",
+            text: `Your OTP for password reset is: ${otp}. Valid for 10 minutes.`     
+        };
+        await sendToQueue("emailQueue", emailData); 
         
         res.status(200).json({ success: true, message: 'OTP sent successfully' });
     } catch (error) {

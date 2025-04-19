@@ -3,6 +3,8 @@ import AppError from "../utils/AppError.js";
 import { StatusCodes } from "http-status-codes";
 import User from "../models/User.js";
 import Enrollment from "../models/Enrollment.js";
+import { setCache, getCache, invalidateCache } from "../utils/redisCache.js";
+import redisClient from "../utils/redis.js";
 
 export const createCourse = async (req, res, next) => {
   try {
@@ -23,6 +25,9 @@ export const createCourse = async (req, res, next) => {
       instructorId: req.user.id,
     });
 
+    // Invalidate the homepage courses cache
+    await invalidateCache("courses:homepage");
+
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Course created successfully",
@@ -35,6 +40,15 @@ export const createCourse = async (req, res, next) => {
 
 export const getCourses = async (req, res, next) => {
   try {
+    const cacheKey = "courses:homepage";
+
+    // Check cache
+    const cachedCourses = await getCache(cacheKey);
+    if (cachedCourses) {
+      return res.status(StatusCodes.OK).json({ success: true, data: cachedCourses });
+    }
+
+    // Fetch from database
     const courses = await Course.findAll({
       include: [
         {
@@ -48,6 +62,9 @@ export const getCourses = async (req, res, next) => {
     if (!courses || courses.length === 0) {
       throw new AppError("No courses found", StatusCodes.NOT_FOUND);
     }
+
+    // Cache the result for 5 minutes
+    await setCache(cacheKey, courses, 300);
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -82,6 +99,9 @@ export const updateCourse = async (req, res, next) => {
 
     await course.save();
 
+    // Invalidate the homepage courses cache
+    await invalidateCache("courses:homepage");
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Course updated successfully",
@@ -111,6 +131,9 @@ export const deleteCourse = async (req, res, next) => {
     // Delete the course
     await course.destroy();
 
+    // Invalidate the homepage courses cache
+    await invalidateCache("courses:homepage");
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Course deleted successfully",
@@ -123,6 +146,13 @@ export const deleteCourse = async (req, res, next) => {
 export const getEnrolledCourses = async (req, res, next) => {
   try {
     // Fetch courses where the user is enrolled
+    const userId=req.user.id
+    const cacheKey=`enrolled:user:${userId}`
+
+    const cachedCourses=await getCache(cacheKey)
+    if(cachedCourses){
+      return res.json(cachedCourses)
+    }
     const enrolledCourses = await Enrollment.findAll({
       where: { userId: req.user.id },
       include: [
@@ -133,7 +163,7 @@ export const getEnrolledCourses = async (req, res, next) => {
         },
       ],
     });
-
+    await setCache(cacheKey,enrolledCourses,600);
     if (!enrolledCourses || enrolledCourses.length === 0) {
       return res.status(200).json({
         success: true,

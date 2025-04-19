@@ -3,10 +3,11 @@ import Course from "../models/Course.js";
 import AppError from "../utils/AppError.js";
 import { StatusCodes } from "http-status-codes";
 import { sendToQueue } from "../utils/rabbitmq.js"; 
+import { invalidateCache } from "../utils/redisCache.js";
 export const enrollInCourse = async (req, res, next) => {
   try {
     const { courseId } = req.body;
-
+    const userId=req.user.id
     // Ensure the course exists
     const course = await Course.findByPk(courseId);
     if (!course) {
@@ -27,6 +28,7 @@ export const enrollInCourse = async (req, res, next) => {
       userId: req.user.id,
       courseId,
     });
+    await invalidateCache(`enrolled:user:${userId}`)
     
     const emailData = {
       to: req.user.email,
@@ -47,6 +49,7 @@ export const enrollInCourse = async (req, res, next) => {
 export const unenrollFromCourse = async (req, res, next) => {
   try {
     const { courseId } = req.params;
+    const userId=req.user.id
 
     // Ensure the enrollment exists
     const enrollment = await Enrollment.findOne({

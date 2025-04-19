@@ -12,6 +12,7 @@ const consumeEmailQueue = async () => {
             
            try{
             await sendMail({email: emailData.to, subject: emailData.subject, html: emailData.text});
+            channnel.ack(msg);
            }
         catch(error){
                 console.error("❌ Error sending email:", error);
