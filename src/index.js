@@ -12,6 +12,10 @@ import authRoutes from "./routes/authRoutes.js";
 import cookieParser from "cookie-parser";
 import { connectRabbitMQ } from "./utils/rabbitmq.js";
 import consumeEmailQueue from "./consumers/emailConsumer.js";
+import { WebSocketServer } from "ws";
+import { setupWebSocketServer } from "./websockets/webSocketHandler.js";
+import session from "express-session";
+import passport from "./config/passport.js";
 
 dotenv.config();
 
@@ -19,6 +23,19 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(errorHandler);
+
+// Configure session
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 const startServer = async () => {
   try {
@@ -32,12 +49,17 @@ const startServer = async () => {
     defineAssociations();
 
     // Sync models
-    await sequelize.sync(); // Changed to avoid deadlocks
+    await sequelize.sync();
     console.log("✅ Synced successfully.");
 
-    app.listen(process.env.PORT || 5000,() => {
+    const server = app.listen(process.env.PORT || 5000, () => {
       console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
     });
+
+    // WebSocket Server
+    const wss = new WebSocketServer({ server });
+    setupWebSocketServer(wss); // Delegate WebSocket setup to the handler
+    console.log("✅ WebSocket server started");
   } catch (error) {
     console.error("❌ Server initialization error:", error);
   }
@@ -51,3 +73,4 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/enrollment", enrollmentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
