@@ -1,6 +1,6 @@
 import express from "express";
 import { body } from "express-validator";
-import { createCourse, getCourses, updateCourse, deleteCourse, getEnrolledCourses } from "../controllers/courseController.js";
+import { createCourse, getCourses, updateCourse, deleteCourse, getEnrolledCourses,searchCourses } from "../controllers/courseController.js";
 import { authenticateUser, restrictTo } from "../middleware/authMiddleware.js";
 import validate from "../middleware/validate.js";
 
@@ -18,5 +18,6 @@ router.get("/get", authenticateUser, getCourses);
 router.post("/update", authenticateUser, restrictTo("instructor"), updateCourse);
 router.delete("/delete", authenticateUser, restrictTo("instructor"), deleteCourse);
 router.get("/enrolled", authenticateUser, restrictTo("student"), getEnrolledCourses);
+router.get("/search",searchCourses);
 
 export default router;

@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Enrollment from "../models/Enrollment.js";
 import { setCache, getCache, invalidateCache } from "../utils/redisCache.js";
 import redisClient from "../utils/redis.js";
+import { Op } from "sequelize";
 
 export const createCourse = async (req, res, next) => {
   try {
@@ -182,3 +183,49 @@ export const getEnrolledCourses = async (req, res, next) => {
   }
 };
 
+
+
+export const searchCourses = async (req, res, next) => {
+  try{
+    const query=req.query.query
+    if(!query){
+      return res.status(400).json({
+        success:false,
+        message:"Query parameter is required"
+      })
+    }
+    const cacheKey=`search:query:${query}`
+    const cachedCourses=await getCache(cacheKey)
+    if(cachedCourses){
+      return res.status(200).json({
+        success:true,
+        message:"Courses retrieved from cache",
+        data:cachedCourses
+      })
+    }
+    const courses=await Course.findAll({
+      where: {
+        [Op.or]: [
+          { title: { [Op.like]: `%${query}%` } }, // Search in course title
+          { description: { [Op.like]: `%${query}%` } }, // Search in course description
+        ],
+      },
+    });
+    if(!courses || courses.length===0){
+      return res.status(404).json({
+        success:true,
+        message:"No courses found",
+        data:[]
+      })
+    }
+    await setCache(cacheKey,courses,600)
+    res.status(200).json({
+      success:true,
+      message:"Courses retrieved successfully",
+      data:courses
+    })
+  }
+  catch(error){
+    next(new AppError(error.message || "Internal Server Error",500))
+  }
+  }

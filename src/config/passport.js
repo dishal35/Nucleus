@@ -30,6 +30,8 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log("Google Profile:", profile); // Log the Google profile
+
         // Check if user already exists
         let user = await User.findOne({ where: { googleId: profile.id } });
 
@@ -37,13 +39,19 @@ passport.use(
           // Create a new user if not found
           user = await User.create({
             googleId: profile.id,
-            name: profile.displayName,
-            email: profile.emails[0].value,
+            fullName: profile.displayName, // Use Google profile name
+            email: profile.emails[0].value, // Use Google profile email
+            password: null, // No password for Google OAuth users
+            role: "student", // Default role
+            isVerified: true, // Mark as verified since Google verifies the email
+            isVerifiedEmail: true,
           });
+          console.log("New User Created:", user); // Log the newly created user
         }
 
         done(null, user);
       } catch (error) {
+        console.error("Error in Google Strategy:", error); // Log the error
         done(error, null);
       }
     }
