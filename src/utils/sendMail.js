@@ -16,7 +16,9 @@ const sendMail = async ({ email, subject, html }) => {
       user: "dishalohia.is22@bmsce.ac.in",
       pass: GMAIL_PASS,
     },
-  });
+    
+  }
+);
 
   const mailOptions = {
     from: "dishalohia.is22@bmsce.ac.in",

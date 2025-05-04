@@ -1,0 +1,94 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #6a0dad, #d9b3ff);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #fff;
+}
+
+.forgot-pass-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.forgot-pass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.forgot-pass-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.forgot-pass-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+label {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 8px;
+  margin-top: 0.3rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1rem;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+input::placeholder {
+  color: #e0d4f7;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 8px #d9b3ff;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.forgot-pass-button {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: #fff;
+  padding: 0.9rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%;
+}
+
+.forgot-pass-button:hover {
+  background: linear-gradient(135deg, #8e44ad, #6a0dad);
+  transform: translateY(-2px);
+}

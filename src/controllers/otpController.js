@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 import AppError from '../utils/AppError.js';
 import sendResponse from '../utils/sendResponse.js';
 import { StatusCodes } from 'http-status-codes';
+import { sendToQueue } from '../utils/rabbitmq.js';  // Added import
 
 // Generate OTP
 function generateOTP() {
@@ -26,7 +27,7 @@ export const sendOTP = async (req, res, next) => {
        
        
         const emailData = {
-            to: req.user.email,
+            to: email,  // Fixed to use email from req.body
             subject: "Reset Password OTP",
             text: `Your OTP for password reset is: ${otp}. Valid for 10 minutes.`     
         };

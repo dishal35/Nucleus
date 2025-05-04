@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";  // Added import
 import "../styles/LoginForm.css";
 
 const handleLogin = async (e) => {
@@ -32,25 +33,6 @@ const handleGoogleLogin = () => {
   window.location.href = "http://localhost:5000/api/auth/google";
 };
 
-const handleForgotPass = async () => {
-  try {
-    const response = await fetch("http://localhost:5000/api/user/forgot-pass", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      console.log("Redirecting to forgot password page...");
-      window.location.href = "http://localhost:5000/api/user/forgot-pass";
-    } else {
-      console.error("Failed to redirect:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error during redirection:", error);
-  }
-};
 
 const LoginForm = () => {
   return (
@@ -71,10 +53,10 @@ const LoginForm = () => {
           </button>
         </form>
         <p className="signup-link">
-          Don't have an account? <a href="/signup">Sign up</a>
+          Don't have an account? <Link to="/signup">Sign up</Link>
         </p>
         <p className="forgot-password-link">
-          <a href="/forgot-password" onClick={handleForgotPass}>Forgot Password?</a>
+          <Link to="/forgot-password">Forgot Password?</Link>
         </p>
         <div className="social-login">
           <button className="google-button" onClick={handleGoogleLogin}>
