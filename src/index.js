@@ -16,13 +16,17 @@ import { WebSocketServer } from "ws";
 import { setupWebSocketServer } from "./websockets/webSocketHandler.js";
 import session from "express-session";
 import passport from "./config/passport.js";
+import cors from "cors";
 
 dotenv.config();
+//allow cors
+
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(errorHandler);
+app.use(cors())
 
 // Configure session
 app.use(
