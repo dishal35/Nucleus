@@ -1,64 +1,106 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Alert from "./Alert";
 import "../styles/SignupForm.css";
 
 const SignForm = () => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("student");
+  const [alert, setAlert] = useState({ type: "", message: "" });
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!fullName || !email || !password) {
-      alert("Please fill in all required fields.");
+    if (!formData.fullName || !formData.email || !formData.password) {
+      setAlert({ type: "error", message: "Please fill in all required fields." });
       return;
     }
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+    if (formData.password !== formData.confirmPassword) {
+      setAlert({ type: "error", message: "Passwords do not match." });
       return;
     }
-
-    const payload = { fullName, email, password, role };
 
     try {
       const response = await fetch("http://localhost:5000/api/user/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        body: JSON.stringify(payload),
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
+      // Check if the response is JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server is not responding properly. Please try again later.");
+      }
+
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        alert("Signup successful!");
-        // Optionally clear form or redirect user
+        setAlert({ type: "success", message: "Signup successful! Redirecting to login..." });
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Signup failed.");
+        setAlert({ type: "error", message: data.message || "Signup failed." });
       }
     } catch (error) {
-      alert("An error occurred. Please try again.");
+      console.error("Error during signup:", error);
+      if (error.message.includes("Failed to fetch")) {
+        setAlert({ 
+          type: "error", 
+          message: "Cannot connect to the server. Please make sure the server is running." 
+        });
+      } else {
+        setAlert({ 
+          type: "error", 
+          message: error.message || "An error occurred. Please try again." 
+        });
+      }
     }
   };
 
   return (
     <div className="signup-container">
+      {alert.message && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert({ type: "", message: "" })}
+          duration={5000}
+        />
+      )}
       <div className="signup-card">
         <h1 className="signup-title">Create an Account</h1>
         <form className="signup-form" onSubmit={handleSignup}>
           <div className="form-group">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="fullName">Full Name</label>
             <input
               type="text"
-              id="name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter your name"
-              required
+              id="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Enter your full name"
             />
           </div>
           <div className="form-group">
@@ -66,10 +108,9 @@ const SignForm = () => {
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               placeholder="Enter your email"
-              required
             />
           </div>
           <div className="form-group">
@@ -77,40 +118,25 @@ const SignForm = () => {
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
-              required
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="confirm-password">Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               type="password"
-              id="confirm-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              id="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
               placeholder="Confirm your password"
-              required
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-            </select>
-          </div>
-          <button type="submit" className="signup-button">
-            Sign Up
-          </button>
+          <button type="submit" className="signup-button">Sign Up</button>
         </form>
         <p className="login-link">
-          Already have an account? <a href="/login">Log in</a>
+          Already have an account? <Link to="/login">Login</Link>
         </p>
       </div>
     </div>

@@ -1,45 +1,60 @@
-import React from "react";
-import { Link } from "react-router-dom";  // Added import
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Alert from "./Alert";
 import "../styles/LoginForm.css";
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  try {
-    const response = await fetch("http://localhost:5000/api/user/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Login successful:", data);
-      // Redirect or perform any other action on successful login
-    } else {
-      console.error("Login failed:", response.statusText);
-    }
-  } catch (error) {
-    console.error("Error during login:", error);
-  }
-};
-
-const handleGoogleLogin = () => {
-  // Redirect to the backend route for Google OAuth
-  window.location.href = "http://localhost:5000/api/auth/google";
-};
-
-
 const LoginForm = () => {
+  const [alert, setAlert] = useState({ type: "", message: "" });
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAlert({ type: "success", message: "Login successful! Redirecting..." });
+        setTimeout(() => {
+          navigate("/"); // Navigate to landing page
+        }, 2000);
+      } else {
+        setAlert({ type: "error", message: data.message || "Login failed." });
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      setAlert({ 
+        type: "error", 
+        message: "Cannot connect to the server. Please try again later." 
+      });
+    }
+  };
+
   return (
     <div className="login-container">
+      {alert.message && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert({ type: "", message: "" })}
+          duration={5000}
+        />
+      )}
       <div className="login-card">
         <h1 className="login-title">Welcome Back</h1>
-        <form className="login-form">
+        <form className="login-form" onSubmit={handleLogin}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input type="email" id="email" placeholder="Enter your email" />
@@ -48,9 +63,7 @@ const LoginForm = () => {
             <label htmlFor="password">Password</label>
             <input type="password" id="password" placeholder="Enter your password" />
           </div>
-          <button type="submit" className="login-button" onClick={handleLogin}>
-            Login
-          </button>
+          <button type="submit" className="login-button">Login</button>
         </form>
         <p className="signup-link">
           Don't have an account? <Link to="/signup">Sign up</Link>
@@ -58,11 +71,6 @@ const LoginForm = () => {
         <p className="forgot-password-link">
           <Link to="/forgot-password">Forgot Password?</Link>
         </p>
-        <div className="social-login">
-          <button className="google-button" onClick={handleGoogleLogin}>
-            Login with Google
-          </button>
-        </div>
       </div>
     </div>
   );

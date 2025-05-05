@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import Alert from "./Alert";
 import "../styles/ForgotPass.css";
 
 const ForgotPass = () => {
   const [email, setEmail] = useState("");
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [alert, setAlert] = useState({ type: "", message: "" });
+  const navigate = useNavigate();
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
 
     if (!email) {
-      alert("Please enter your email.");
+      setAlert({ type: "error", message: "Please enter your email." });
       return;
     }
 
@@ -19,25 +21,41 @@ const ForgotPass = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert("Password reset link sent to your email.");
-        navigate("/reset-password", { state: { email } }); // Redirect to ResetPass with email
+        setAlert({ type: "success", message: "OTP sent to your email." });
+        setTimeout(() => {
+          navigate("/reset-password", { state: { email } });
+        }, 2000);
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to send reset link.");
+        setAlert({ type: "error", message: data.message || "Failed to send OTP." });
       }
     } catch (error) {
       console.error("Error during forgot password request:", error);
-      alert("An error occurred. Please try again.");
+      setAlert({ 
+        type: "error", 
+        message: "Cannot connect to the server. Please try again later." 
+      });
     }
   };
 
   return (
     <div className="forgot-pass-container">
+      {alert.message && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert({ type: "", message: "" })}
+          duration={5000}
+        />
+      )}
       <div className="forgot-pass-card">
         <h1 className="forgot-pass-title">Forgot Password</h1>
         <form className="forgot-pass-form" onSubmit={handleForgotPassword}>
@@ -52,7 +70,7 @@ const ForgotPass = () => {
             />
           </div>
           <button type="submit" className="forgot-pass-button">
-            Send Reset Link
+            Send OTP
           </button>
         </form>
       </div>

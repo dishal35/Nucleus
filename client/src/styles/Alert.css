@@ -1,0 +1,154 @@
+.alert-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  min-width: 350px;
+  max-width: 90%;
+  height: 50px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 4.7s forwards;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alert-icon {
+  display: flex;
+  align-items: center;
+}
+
+.alert-message {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.alert-close-button {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  color: inherit;
+}
+
+.alert-close-button:hover {
+  transform: scale(1.1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.alert-container:hover {
+  animation-play-state: paused;
+}
+
+/* Success alert specific styles */
+.alert-success {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+}
+
+/* Error alert specific styles */
+.alert-error {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: white;
+}
+
+/* Warning alert specific styles */
+.alert-warning {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: white;
+}
+
+/* Info alert specific styles */
+.alert-info {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+}
+
+.floating-alert {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 90%;
+  min-width: 300px;
+  padding: 1rem 1.5rem;
+  border-left: 6px solid rgba(255, 255, 255, 0.5);
+  animation: slideDown 0.5s ease, fadeOut 0.5s ease 3s forwards;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 10px; /* Smooth shape */
+  pointer-events: auto;
+}
+
+.floating-alert svg {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.alert-message{
+    flex-grow: 1;
+    margin-right: 12px;
+}
+
+.alert-close{
+    cursor:pointer;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: 8px;
+}

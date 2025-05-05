@@ -20,13 +20,19 @@ import cors from "cors";
 
 dotenv.config();
 //allow cors
-
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : 'http://localhost:3000', // Vite's default port
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(errorHandler);
-app.use(cors())
+app.use(cors(corsOptions));
 
 // Configure session
 app.use(
@@ -40,6 +46,18 @@ app.use(
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Routes
+app.use("/api/user", userRoutes);
+app.use("/api/otp", otpRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/enrollment", enrollmentRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
+
+// Error handler middleware should be last
+app.use(errorHandler);
 
 const startServer = async () => {
   try {
@@ -70,11 +88,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-app.use("/api/user", userRoutes);
-app.use("/api/otp", otpRoutes);
-app.use("/api/courses", courseRoutes);
-app.use("/api/enrollment", enrollmentRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/auth", authRoutes);
