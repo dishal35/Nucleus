@@ -18,6 +18,7 @@ body {
     padding: 2rem;
     position: relative;
     z-index: 0;
+    min-height: 100vh;
   }
   
   /* Glowing Gradient Background */
@@ -36,18 +37,18 @@ body {
   /* Navbar */
   .navbar {
     position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 70px; /* Set based on your design */
-  background:rgba(255, 255, 255, 0.1); /* Ensure it's not transparent */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  z-index: 9999;
-  color: white;
-  height: 70px; /* Adjust based on actual height */
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    z-index: 9999;
+    color: white;
   }
   
   .navbar-logo h1 {
@@ -60,6 +61,8 @@ body {
     list-style: none;
     display: flex;
     gap: 1.5rem;
+    margin: 0;
+    padding: 0;
   }
   
   .navbar-links a {
@@ -71,6 +74,39 @@ body {
   
   .navbar-links a:hover {
     color: #ffdbff;
+  }
+  
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .profile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .profile-icon {
+    font-size: 1.2rem;
+  }
+  
+  .logout-button {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
   
   .navbar-cta {
@@ -169,55 +205,47 @@ body {
   
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 2rem;
     padding: 1rem;
   }
   
   .feature-card {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    padding: 2rem 1.5rem;
+    padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease;
   }
   
   .feature-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
-  }
-  
-  .feature-icon {
-    font-size: 2.8rem;
-    color: #d9b3ff;
-    margin-bottom: 1rem;
+    transform: translateY(-5px);
   }
   
   .feature-card h3 {
     font-size: 1.5rem;
     color: #fff;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
   }
   
   .feature-card p {
-    font-size: 1rem;
     color: #e0d4f7;
   }
   
   /* Footer */
   .landing-footer {
     margin-top: 4rem;
-    font-size: 0.9rem;
+    padding: 2rem;
+    text-align: center;
     color: #d2c3f1;
   }
   
   /* Search Bar */
   .search-bar {
-    margin: 1.5rem auto 2rem;
+    margin: 1.5rem auto;
     display: flex;
     align-items: center;
-    justify-content: center;
     background-color: rgba(255, 255, 255, 0.1);
     padding: 0.6rem 1rem;
     border-radius: 25px;
@@ -240,6 +268,104 @@ body {
   .search-icon {
     color: #d9b3ff;
     font-size: 1.2rem;
+  }
+  
+  /* Main Content */
+  .main-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .courses-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .create-course-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.4rem;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .create-course-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
+  }
+  
+  /* Courses Grid */
+  .courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+  }
+  
+  .course-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+  }
+  
+  .course-card h3 {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+  
+  .course-card p {
+    color: #e0d4f7;
+    margin-bottom: 1rem;
+  }
+  
+  .instructor {
+    font-size: 0.9rem;
+    color: #d9b3ff;
+  }
+  
+  .course-stats {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: #d9b3ff;
+  }
+  
+  .course-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .course-link, .edit-link, .students-link {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .course-link:hover, .edit-link:hover, .students-link:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
   
   /* Animations */

@@ -1,28 +1,105 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import LandingPage from "./pages/LandingPage";
-import InstructorDashboard from "./components/Dashboard/InstructorDashboard";
-import StudentDashboard from "./components/Dashboard/StudentDashboard";
+import StudentLandingPage from "./pages/StudentLandingPage";
+import InstructorLandingPage from "./pages/InstructorLandingPage";
 import LoginForm from "./components/LoginForm";
 import SignForm from "./components/SignForm";
 import ForgotPass from "./components/ForgotPass";
 import ResetPass from "./components/ResetPass";
 import "./App.css";
 
+// Protected route component for authenticated users
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
+
+// Public route component for non-authenticated users
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
+    // Redirect based on user role
+    if (user.role === "student") {
+      return <Navigate to="/student" />;
+    }
+    if (user.role === "instructor") {
+      return <Navigate to="/instructor" />;
+    }
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
+
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/signup" element={<SignForm />} />
-        <Route path="/forgot-password" element={<ForgotPass />} />
-        <Route path="/reset-password" element={<ResetPass />} />
-        <Route path="/instructor-dashboard" element={<InstructorDashboard />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="*" element={<LandingPage />} /> {/* Default to Landing Page */}
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          } />
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginForm />
+            </PublicRoute>
+          } />
+          <Route path="/signup" element={
+            <PublicRoute>
+              <SignForm />
+            </PublicRoute>
+          } />
+          <Route path="/forgot-password" element={
+            <PublicRoute>
+              <ForgotPass />
+            </PublicRoute>
+          } />
+          <Route path="/reset-password" element={
+            <PublicRoute>
+              <ResetPass />
+            </PublicRoute>
+          } />
+
+          {/* Protected routes */}
+          <Route path="/student" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLandingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/instructor" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <InstructorLandingPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 };
 

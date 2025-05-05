@@ -112,6 +112,10 @@ export const login = async (req, res, next) => {
       throw new AppError("Invalid email or password", StatusCodes.UNAUTHORIZED);
     }
 
+    if (!user.isVerifiedEmail) {
+      throw new AppError("Please verify your email before logging in", StatusCodes.UNAUTHORIZED);
+    }
+
     // Generate tokens
     const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
@@ -136,11 +140,20 @@ export const login = async (req, res, next) => {
       secure: process.env.NODE_ENV !== "development",
     });
 
+    // Prepare user data for response
+    const userData = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+    };
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Login successful",
       accessToken,
       refreshToken,
+      data: userData
     });
   } catch (error) {
     next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));

@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Alert from "./Alert";
 import "../styles/LoginForm.css";
 
 const LoginForm = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,9 +28,16 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.ok) {
+        login(data.data);
         setAlert({ type: "success", message: "Login successful! Redirecting..." });
         setTimeout(() => {
-          navigate("/"); // Navigate to landing page
+          if (data.data.role === "student") {
+            navigate("/student");
+          } else if (data.data.role === "instructor") {
+            navigate("/instructor");
+          } else {
+            navigate("/");
+          }
         }, 2000);
       } else {
         setAlert({ type: "error", message: data.message || "Login failed." });
