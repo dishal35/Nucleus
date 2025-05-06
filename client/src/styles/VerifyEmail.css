@@ -1,0 +1,21 @@
+.verify-email-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6a0dad, #d9b3ff);
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.verify-email-container h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.verify-email-container p {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}

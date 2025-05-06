@@ -10,13 +10,14 @@ const SignForm = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "student", // Default role
   });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value,
+      [e.target.id || e.target.name]: e.target.value,
     });
   };
 
@@ -24,12 +25,12 @@ const SignForm = () => {
     e.preventDefault();
 
     if (!formData.fullName || !formData.email || !formData.password) {
-      setAlert({ type: "error", message: "Please fill in all required fields." });
+      setAlert({ type: "warning", message: "Please fill in all required fields." });
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setAlert({ type: "error", message: "Passwords do not match." });
+      setAlert({ type: "warning", message: "Passwords do not match." });
       return;
     }
 
@@ -41,11 +42,7 @@ const SignForm = () => {
           "Accept": "application/json"
         },
         credentials: "include",
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-        }),
+        body: JSON.stringify(formData),
       });
 
       // Check if the response is JSON
@@ -132,6 +129,20 @@ const SignForm = () => {
               onChange={handleChange}
               placeholder="Confirm your password"
             />
+          </div>
+          <div className="form-group">
+            <label htmlFor="role">Role</label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="role-select"
+            >
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
           <button type="submit" className="signup-button">Sign Up</button>
         </form>

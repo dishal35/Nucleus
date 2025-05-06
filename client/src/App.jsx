@@ -9,6 +9,7 @@ import SignForm from "./components/SignForm";
 import ForgotPass from "./components/ForgotPass";
 import ResetPass from "./components/ResetPass";
 import "./App.css";
+import VerifyEmail from "./components/verifyEmail";
 
 // Protected route component for authenticated users
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -93,6 +94,11 @@ const App = () => {
             <ProtectedRoute allowedRoles={["instructor"]}>
               <InstructorLandingPage />
             </ProtectedRoute>
+          } />
+          <Route path="/verify-email" element={
+            <PublicRoute>
+              <VerifyEmail />
+            </PublicRoute>
           } />
 
           {/* Fallback route */}

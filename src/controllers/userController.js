@@ -113,6 +113,10 @@ export const login = async (req, res, next) => {
     }
 
     if (!user.isVerifiedEmail) {
+      const emailToken = crypto.randomBytes(64).toString("hex");
+      user.emailToken = emailToken;
+      await user.save();
+      sendVerificationMail(user.email, user.emailToken);
       throw new AppError("Please verify your email before logging in", StatusCodes.UNAUTHORIZED);
     }
 
@@ -228,3 +232,23 @@ export const logout = async (req, res) => {
     throw new AppError("Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
+
+export const deleteAccount = async (req, res, next) => {
+  try {
+    const userId=req.body.id; // Assuming userId is passed in the request body
+    console.log("User ID:", userId);
+    const user = await User.findByPk(userId);
+    if (!user) {
+      throw new AppError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    // Delete the user
+    await user.destroy();
+
+    // Send success response
+    sendResponse(res, StatusCodes.OK, true, "Account deleted successfully");
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
+  }
+}
