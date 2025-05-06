@@ -30,6 +30,7 @@ const LoginForm = () => {
       if (response.ok) {
         login(data.data);
         setAlert({ type: "success", message: "Login successful! Redirecting..." });
+        localStorage.setItem("token", data.accessToken);
         setTimeout(() => {
           if (data.data.role === "student") {
             navigate("/student");

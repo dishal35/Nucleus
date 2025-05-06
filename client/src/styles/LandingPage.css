@@ -368,6 +368,63 @@ body {
     background: rgba(255, 255, 255, 0.2);
   }
   
+  /* Create Course Form */
+  .create-course-form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    margin: 1rem 0;
+  }
+  
+  .create-course-form h3 {
+    margin-bottom: 1rem;
+    color: #fff;
+  }
+  
+  .create-course-form .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .create-course-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #fff;
+  }
+  
+  .create-course-form input,
+  .create-course-form textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 1rem;
+  }
+  
+  .create-course-form input:focus,
+  .create-course-form textarea:focus {
+    outline: none;
+    box-shadow: 0 0 5px #d9b3ff;
+  }
+  
+  .create-course-form .submit-button {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
+  
+  .create-course-form .submit-button:hover {
+    background: linear-gradient(135deg, #8e44ad, #6a0dad);
+  }
+  
   /* Animations */
   @keyframes fadeIn {
     from {
@@ -390,4 +447,3 @@ body {
       transform: scale(1.05);
     }
   }
-  

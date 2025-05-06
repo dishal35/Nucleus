@@ -61,7 +61,11 @@ export const getCourses = async (req, res, next) => {
     });
 
     if (!courses || courses.length === 0) {
-      throw new AppError("No courses found", StatusCodes.NOT_FOUND);
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        message: "No courses available",
+        data: [],
+      });
     }
 
     // Cache the result for 5 minutes

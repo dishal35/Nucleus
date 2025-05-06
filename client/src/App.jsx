@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import StudentLandingPage from "./pages/StudentLandingPage";
 import InstructorLandingPage from "./pages/InstructorLandingPage";
+import TestButton from "./components/TestButton";
 import LoginForm from "./components/LoginForm";
 import SignForm from "./components/SignForm";
 import ForgotPass from "./components/ForgotPass";
@@ -92,7 +93,10 @@ const App = () => {
           } />
           <Route path="/instructor" element={
             <ProtectedRoute allowedRoles={["instructor"]}>
-              <InstructorLandingPage />
+              <>
+                <InstructorLandingPage />
+                <TestButton />
+              </>
             </ProtectedRoute>
           } />
           <Route path="/verify-email" element={

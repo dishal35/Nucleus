@@ -7,15 +7,12 @@ import { StatusCodes } from "http-status-codes";
 export const authenticateUser = async (req, res, next) => {
   try {
     const token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
-    console.log("Token:", token); // Debugging line
 
     if (!token) {
       throw new AppError("Authentication token missing", StatusCodes.UNAUTHORIZED);
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded Token:", decoded); // Debugging line
-
     const user = await User.findOne({ where: { id: decoded.userId } });
     if (!user) {
       throw new AppError("User not found", StatusCodes.UNAUTHORIZED);
@@ -24,7 +21,6 @@ export const authenticateUser = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error("Authentication Error:", error); // Debugging line
     if (error.name === "TokenExpiredError") {
       next(new AppError("Token has expired. Please log in again.", StatusCodes.UNAUTHORIZED));
     } else {
@@ -37,7 +33,10 @@ export const authenticateUser = async (req, res, next) => {
 export const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
 
+  console.log("verifyToken middleware - token received:", token); // Added logging
+
   if (!token) {
+    console.log("verifyToken middleware - no token provided");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -46,7 +45,7 @@ export const verifyToken = (req, res, next) => {
     req.user = decoded; // Attach user info to the request object
     next();
   } catch (error) {
-    console.error("Invalid token:", error);
+    console.error("verifyToken middleware - invalid token error:", error);
     res.status(401).json({ message: "Invalid or expired token" });
   }
 };

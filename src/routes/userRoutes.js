@@ -60,7 +60,7 @@ router.post("/delete-account", deleteAccount); // Only authenticated users can d
 // Get current user details
 router.get("/me", verifyToken, async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id, {
+    const user = await User.findByPk(req.user.userId, {
       attributes: { exclude: ["password"] }, // Exclude sensitive fields
     });
 

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
@@ -7,22 +7,35 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    checkAuthStatus();
+    // Check if the token exists in localStorage on app load
+    const token = localStorage.getItem("token");
+    if (token) {
+      validateToken(token); // Set the token in state for immediate access
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const checkAuthStatus = async () => {
+  const validateToken = async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/api/user/me', {
-        credentials: 'include',
+      const response = await fetch("http://localhost:5000/api/user/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setUser(data.data);
+        setUser(data.data); // Set the user details
+      } else {
+        localStorage.removeItem("token"); // Remove invalid token
+        setUser(null);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Error validating token:", error);
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -34,13 +47,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:5000/api/user/logout', {
-        method: 'POST',
-        credentials: 'include',
+      await fetch("http://localhost:5000/api/user/logout", {
+        method: "POST",
+        credentials: "include",
       });
+      localStorage.removeItem("token"); // Remove token on logout
       setUser(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -54,7 +68,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-}; 
+};

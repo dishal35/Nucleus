@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers, FaStar } from "react-icons/fa";
+import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LandingPage.css";
 
@@ -10,9 +10,10 @@ const InstructorLandingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({
     totalStudents: 0,
-    averageRating: 0,
-    totalCourses: 0
+    totalCourses: 0,
   });
+  const [showCreateForm, setShowCreateForm] = useState(false); // State to toggle form visibility
+  const [newCourse, setNewCourse] = useState({ title: "", description: "" }); // State for form inputs
 
   useEffect(() => {
     fetchMyCourses();
@@ -20,21 +21,22 @@ const InstructorLandingPage = () => {
 
   const fetchMyCourses = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/course/my-courses", {
-        credentials: "include",
+      const response = await fetch("http://localhost:5000/api/courses/get", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token for authentication
+        },
       });
       const data = await response.json();
       if (response.ok) {
         setCourses(data.data);
+
         // Calculate statistics
         const totalStudents = data.data.reduce((sum, course) => sum + (course.enrollmentCount || 0), 0);
-        const totalRating = data.data.reduce((sum, course) => sum + (course.averageRating || 0), 0);
-        const averageRating = data.data.length ? (totalRating / data.data.length).toFixed(1) : 0;
-        
         setStats({
           totalStudents,
-          averageRating,
-          totalCourses: data.data.length
+          totalCourses: data.data.length,
         });
       }
     } catch (error) {
@@ -42,7 +44,34 @@ const InstructorLandingPage = () => {
     }
   };
 
-  const filteredCourses = courses.filter(course =>
+  const handleCreateCourse = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:5000/api/courses/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token for authentication
+        },
+        body: JSON.stringify(newCourse),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Course created:", data.data);
+        setShowCreateForm(false); // Hide the form after successful creation
+        setNewCourse({ title: "", description: "" }); // Reset form inputs
+        await fetchMyCourses(); // Refresh the course list
+      } else {
+        console.error("Error creating course:", data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const filteredCourses = courses.filter((course) =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     course.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -84,13 +113,6 @@ const InstructorLandingPage = () => {
               </div>
             </div>
             <div className="stat-card">
-              <FaStar className="stat-icon" />
-              <div className="stat-info">
-                <h3>Average Rating</h3>
-                <p>{stats.averageRating}</p>
-              </div>
-            </div>
-            <div className="stat-card">
               <FaChartLine className="stat-icon" />
               <div className="stat-info">
                 <h3>Total Courses</h3>
@@ -98,10 +120,46 @@ const InstructorLandingPage = () => {
               </div>
             </div>
           </div>
-          <Link to="/create-course" className="create-course-button">
-            <FaPlus /> Create New Course
-          </Link>
+          <button
+            className="create-course-button"
+            onClick={() => {
+              console.log("Create Course button clicked");
+              setShowCreateForm(!showCreateForm)}} // Toggle form visibility
+          > Create New Course
+          </button>
         </div>
+
+        {showCreateForm && (
+          <div className="create-course-form">
+            <h3>Create a New Course</h3>
+            <form onSubmit={handleCreateCourse}>
+              <div className="form-group">
+                <label htmlFor="title">Course Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  value={newCourse.title}
+                  onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+                  placeholder="Enter course title"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="description">Course Description</label>
+                <textarea
+                  id="description"
+                  value={newCourse.description}
+                  onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                  placeholder="Enter course description"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" className="submit-button">
+                Create Course
+              </button>
+            </form>
+          </div>
+        )}
 
         <div className="courses-grid">
           {filteredCourses.map((course) => (
@@ -109,8 +167,9 @@ const InstructorLandingPage = () => {
               <h3>{course.title}</h3>
               <p>{course.description}</p>
               <div className="course-stats">
-                <span><FaUsers /> {course.enrollmentCount || 0} Students</span>
-                <span><FaStar /> {course.averageRating || 'N/A'} Rating</span>
+                <span>
+                  <FaUsers /> {course.enrollmentCount || 0} Students
+                </span>
               </div>
               <div className="course-actions">
                 <Link to={`/course/${course.id}/edit`} className="edit-link">
@@ -136,4 +195,4 @@ const InstructorLandingPage = () => {
   );
 };
 
-export default InstructorLandingPage; 
+export default InstructorLandingPage;
