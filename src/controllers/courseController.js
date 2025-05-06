@@ -150,44 +150,45 @@ export const deleteCourse = async (req, res, next) => {
 
 export const getEnrolledCourses = async (req, res, next) => {
   try {
-    // Fetch courses where the user is enrolled
-    const userId=req.user.id
-    const cacheKey=`enrolled:user:${userId}`
+    const userId = req.user.id;
+    const cacheKey = `enrolled:user:${userId}`;
 
-    const cachedCourses=await getCache(cacheKey)
-    if(cachedCourses){
-      return res.json(cachedCourses)
+    await invalidateCache(cacheKey);
+    const cachedCourses = await getCache(cacheKey);
+    if (cachedCourses) {
+      return res.json(cachedCourses);
     }
-    const enrolledCourses = await Enrollment.findAll({
-      where: { userId: req.user.id },
+
+    // Find all enrollments for the user
+    const enrollments = await Enrollment.findAll({
+      where: { userId },
+      attributes: ['courseId'],
+    });
+    const courseIds = enrollments.map(e => e.courseId);
+
+    // Fetch full course objects for these IDs
+    const enrolledCourses = await Course.findAll({
+      where: { id: courseIds },
       include: [
         {
-          model: Course,
-          as: "course",
-          attributes: ["id", "title", "description"], // Fetch only necessary fields
+          model: User,
+          as: 'instructor',
+          attributes: ['fullName'],
         },
       ],
     });
-    await setCache(cacheKey,enrolledCourses,600);
-    if (!enrolledCourses || enrolledCourses.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: "You are not enrolled in any courses.",
-        data: [],
-      });
-    }
+
+    await setCache(cacheKey, enrolledCourses, 600);
 
     res.status(200).json({
       success: true,
-      message: "Enrolled courses retrieved successfully.",
-      data: enrolledCourses.map((enrollment) => enrollment.course),
+      message: 'Enrolled courses retrieved successfully.',
+      data: enrolledCourses,
     });
   } catch (error) {
-    next(new AppError(error.message || "Internal Server Error", 500));
+    next(new AppError(error.message || 'Internal Server Error', 500));
   }
 };
-
-
 
 export const searchCourses = async (req, res, next) => {
   try{

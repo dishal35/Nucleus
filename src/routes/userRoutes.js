@@ -49,7 +49,7 @@ router.post(
 );
 
 // Protected routes
-router.post("/logout", authenticateUser, logout); // Only authenticated users can log out
+router.post("/logout",logout); // Only authenticated users can log out
 router.post("/verify-email", verifyEmail); // Change from GET to POST
 
 // Forgot and reset password
