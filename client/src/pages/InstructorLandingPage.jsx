@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LandingPage.css";
 
 const InstructorLandingPage = () => {
+  console.log("InstructorLandingPage rendering", new Date().toISOString());
+
   const { user, logout } = useAuth();
   const [courses, setCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,11 +14,22 @@ const InstructorLandingPage = () => {
     totalStudents: 0,
     totalCourses: 0,
   });
-  const [showCreateForm, setShowCreateForm] = useState(false); // State to toggle form visibility
-  const [newCourse, setNewCourse] = useState({ title: "", description: "" }); // State for form inputs
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newCourse, setNewCourse] = useState({ title: "", description: "" });
+
+  const handleCreateClick = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Create button clicked", new Date().toISOString());
+    setShowCreateForm(prev => !prev);
+  }, []);
 
   useEffect(() => {
+    console.log("Component mounted", new Date().toISOString());
     fetchMyCourses();
+    return () => {
+      console.log("Component unmounting", new Date().toISOString());
+    };
   }, []);
 
   const fetchMyCourses = async () => {
@@ -77,7 +90,7 @@ const InstructorLandingPage = () => {
   );
 
   return (
-    <div className="landing-container">
+    <div className="landing-container" data-testid="instructor-landing">
       <nav className="navbar">
         <div className="navbar-logo">
           <h1>Nucleus</h1>
@@ -120,17 +133,31 @@ const InstructorLandingPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div style={{ margin: '20px 0', textAlign: 'center' }}>
           <button
-            className="create-course-button"
-            onClick={() => {
-              console.log("Create Course button clicked");
-              setShowCreateForm(!showCreateForm)}} // Toggle form visibility
-          > Create New Course
+            type="button"
+            data-testid="create-course-button"
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#9b59b6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              position: 'relative',
+              zIndex: 1000
+            }}
+            onClick={handleCreateClick}
+          >
+            Create New Course
           </button>
         </div>
 
         {showCreateForm && (
-          <div className="create-course-form">
+          <div className="create-course-form" onClick={(event) => event.stopPropagation()}>
             <h3>Create a New Course</h3>
             <form onSubmit={handleCreateCourse}>
               <div className="form-group">
@@ -195,4 +222,7 @@ const InstructorLandingPage = () => {
   );
 };
 
-export default InstructorLandingPage;
+// Add display name for React DevTools
+InstructorLandingPage.displayName = 'InstructorLandingPage';
+
+export default React.memo(InstructorLandingPage);
