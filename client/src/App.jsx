@@ -10,6 +10,7 @@ import ForgotPass from "./components/ForgotPass";
 import ResetPass from "./components/ResetPass";
 import "./App.css";
 import VerifyEmail from "./components/verifyEmail";
+import CourseLandingPage from "./pages/CourseLandingPage";
 
 // Protected route component for authenticated users
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -88,6 +89,16 @@ const App = () => {
           <Route path="/student" element={
             <ProtectedRoute allowedRoles={["student"]}>
               <StudentLandingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/course/:courseId" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <CourseLandingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/course/:courseId/learn" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <CourseLandingPage />
             </ProtectedRoute>
           } />
           <Route path="/instructor" element={

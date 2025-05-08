@@ -1,0 +1,127 @@
+.course-landing-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.course-landing-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.course-landing-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.course-instructor {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.course-description {
+    margin-bottom: 2rem;
+    background-color: #f9f9f9;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.course-description h2 {
+    font-size: 1.8rem;
+    color: #444;
+    margin-bottom: 1rem;
+}
+
+.course-enrollment {
+    background-color: #fff3e0;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 2rem;
+    border: 2px solid #ffe0b2;
+}
+
+.course-enrollment h2 {
+    color: #f57c00;
+    margin-bottom: 1rem;
+}
+
+.enroll-button {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1rem;
+}
+
+.enroll-button:hover {
+    background-color: #8e44ad;
+}
+
+.course-content {
+    background-color: #f9f9f9;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.course-content h2 {
+    font-size: 1.8rem;
+    color: #444;
+    margin-bottom: 1.5rem;
+}
+
+.content-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.content-item {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.content-item h3 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.content-item p {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.content-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #9b59b6;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.content-link:hover {
+    background-color: #8e44ad;
+}
+
+.course-landing-loading,
+.course-landing-error,
+.course-landing-not-found {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.course-landing-error {
+    color: #e74c3c;
+} 

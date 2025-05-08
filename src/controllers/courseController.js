@@ -81,6 +81,49 @@ export const getCourses = async (req, res, next) => {
   }
 };
 
+export const getCourseById = async (req, res, next) => {
+  try{
+    const {id} = req.params;
+    const userId = req.user.id;
+
+    // Find the course with instructor details
+    const course = await Course.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'instructor',
+          attributes: ['fullName'],
+        },
+      ],
+    });
+
+    if(!course){
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
+    }
+
+    // Check if user is enrolled
+    const enrollment = await Enrollment.findOne({
+      where: { userId, courseId: id }
+    });
+
+    // Add enrollment status to course data
+    const courseData = course.toJSON();
+    courseData.isEnrolled = !!enrollment;
+
+    res.status(200).json({
+      success: true,
+      message: "Course retrieved successfully",
+      data: courseData
+    });
+  }
+  catch(error){
+    next(new AppError(error.message || "Internal Server Error", 500));
+  }
+}
+
 export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;

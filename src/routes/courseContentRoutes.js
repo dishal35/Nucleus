@@ -1,8 +1,9 @@
 import express from 'express';
-import { upload } from '../config/s3.js';
+import { upload,getPresignedUrl } from '../config/s3.js';
 import { verifyToken, restrictTo } from '../middleware/authMiddleware.js';
 import CourseContent from '../models/CourseContent.js';
-import Course from '../models/Course.js'
+import Course from '../models/Course.js';
+import Enrollment from '../models/Enrollment.js';
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ router.post(
       const course = await Course.findOne({
         where: { 
           id: courseId,
-          instructorId: req.user.id // This should now be defined
+          instructorId: req.user.id 
         }
       });
 
@@ -69,10 +70,36 @@ router.get(
   verifyToken,
   async (req, res) => {
     try {
-      // Implement fetching course content logic
-      // This would typically involve querying your database
-      res.json({ data: [] });
+      const { courseId } = req.params;
+      const isEnrolled = await Enrollment.findOne({
+        where: {
+          courseId,
+          userId: req.user.id
+        }
+      });
+
+      if (!isEnrolled) {
+        return res.status(403).json({
+          message: 'You are not enrolled in this course'
+        });
+      } 
+
+      const content = await CourseContent.findAll({
+        where: { courseId }
+      });
+
+      // Generate presigned URLs for each content item
+      const contentWithUrls = await Promise.all(content.map(async (item) => {
+        const presignedUrl = await getPresignedUrl(item.key);
+        return {
+          ...item.toJSON(),
+          fileUrl: presignedUrl
+        };
+      }));
+
+      res.json({ data: contentWithUrls });
     } catch (error) {
+      console.error('Error fetching course content:', error);
       res.status(500).json({ message: 'Error fetching course content' });
     }
   }
@@ -95,3 +122,4 @@ router.delete(
 );
 
 export default router; 
+

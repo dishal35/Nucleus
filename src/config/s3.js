@@ -1,4 +1,5 @@
-const { S3Client } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 
@@ -21,7 +22,8 @@ const upload = multer({
       // Create a unique file name
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       cb(null, `course-content/${req.user.id}/${uniqueSuffix}-${file.originalname}`);
-    }
+    },
+    contentDisposition: 'inline'
   }),
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
@@ -37,4 +39,18 @@ const upload = multer({
   }
 });
 
-module.exports = { s3Client, upload };
+const getPresignedUrl=async(key)=>{
+  const command=new GetObjectCommand({
+    Bucket:process.env.AWS_BUCKET_NAME,
+    Key:key
+  })
+  try{
+    const url=await getSignedUrl(s3Client,command,{expiresIn:3600})
+    return url;
+  }catch(error){
+    console.error('Error generating presigned URL:', error);
+    throw error;
+  }
+}
+
+module.exports = { s3Client, upload, getPresignedUrl };
