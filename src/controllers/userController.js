@@ -106,7 +106,6 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validate user credentials (example logic)
     const user = await User.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new AppError("Invalid email or password", StatusCodes.UNAUTHORIZED);
@@ -120,14 +119,24 @@ export const login = async (req, res, next) => {
       throw new AppError("Please verify your email before logging in", StatusCodes.UNAUTHORIZED);
     }
 
-    // Generate tokens
-    const accessToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    // Include role in the token payload
+    const accessToken = jwt.sign(
+      { 
+        userId: user.id,
+        role: user.role  // Add the role here
+      }, 
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-    const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET, {
-      expiresIn: "7d",
-    });
+    const refreshToken = jwt.sign(
+      { 
+        userId: user.id,
+        role: user.role  // Add the role here too
+      }, 
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
 
     // Set tokens as cookies
     res.cookie("jwt", accessToken, {

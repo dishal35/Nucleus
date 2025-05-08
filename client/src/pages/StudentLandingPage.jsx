@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { FaSearch, FaUser, FaBook, FaGraduationCap } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LandingPage.css";
+import { fetchWithAuth } from "../utils/fetchWithAuth";
+import { useNavigate } from "react-router-dom";
 
 const StudentLandingPage = () => {
   const { user, logout } = useAuth();
@@ -10,6 +12,7 @@ const StudentLandingPage = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("available"); // "available" or "enrolled"
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAvailableCourses();
@@ -18,9 +21,8 @@ const StudentLandingPage = () => {
 
   const fetchAvailableCourses = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/courses/get", {
+      const response = await fetchWithAuth("http://localhost:5000/api/courses/get", {
         method:"GET",
-        credentials: "include",
       });
       const data = await response.json();
       if (response.ok) {
@@ -28,14 +30,15 @@ const StudentLandingPage = () => {
       }
     } catch (error) {
       console.error("Error fetching available courses:", error);
+      if (error.message === "Authentication failed") {
+        navigate("/login");
+      }
     }
   };
 
   const fetchEnrolledCourses = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/courses/enrolled", {
-        credentials: "include",
-      });
+      const response = await fetchWithAuth("http://localhost:5000/api/courses/enrolled");
       const data = await response.json();
       if (response.ok) {
         setEnrolledCourses(data.data|| []);
@@ -47,8 +50,7 @@ const StudentLandingPage = () => {
 
   const handleEnrollment = async (course) => {
     try{
-      const response=await fetch("http://localhost:5000/api/enrollment/enroll",{
-        credentials:"include",
+      const response=await fetchWithAuth("http://localhost:5000/api/enrollment/enroll",{
         method:"POST",
         headers:
         {

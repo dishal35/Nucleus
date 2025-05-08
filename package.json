@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "dev": "nodemon src/index.js",
     "sequelize": "sequelize-cli --config src/config/config.json --models-path src/models --migrations-path src/migrations --seeders-path src/seeders"
   },
@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.804.0",
     "amqplib": "^0.10.7",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^5.1.1",
@@ -42,6 +43,11 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.1.0"
   }
 }

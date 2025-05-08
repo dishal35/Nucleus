@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers } from "react-icons/fa";
+import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers, FaUpload } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LandingPage.css";
+import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 const InstructorLandingPage = () => {
   console.log("InstructorLandingPage rendering", new Date().toISOString());
@@ -16,6 +17,12 @@ const InstructorLandingPage = () => {
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCourse, setNewCourse] = useState({ title: "", description: "" });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [contentTitle, setContentTitle] = useState("");
+  const [contentDescription, setContentDescription] = useState("");
 
   const handleCreateClick = useCallback((e) => {
     e.preventDefault();
@@ -34,7 +41,7 @@ const InstructorLandingPage = () => {
 
   const fetchMyCourses = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/courses/get", {
+      const response = await fetchWithAuth("http://localhost:5000/api/courses/get", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +67,7 @@ const InstructorLandingPage = () => {
   const handleCreateCourse = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/courses/create", {
+      const response = await fetchWithAuth("http://localhost:5000/api/courses/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,6 +89,51 @@ const InstructorLandingPage = () => {
     } catch (error) {
       console.error("Error:", error);
     }
+  };
+
+  const handleFileSelect = (e) => {
+    setSelectedFile(e.target.files[0]);
+    setUploadError(null);
+  };
+
+  const handleUploadContent = async (courseId) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('title', contentTitle);
+      formData.append('description', contentDescription);
+
+      const response = await fetchWithAuth(
+        `http://localhost:5000/api/course-content/upload/${courseId}`,
+        {
+          method: 'POST',
+          body: formData,
+          // Don't set Content-Type header, let the browser set it with the boundary
+        }
+      );
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setShowUploadForm(false);
+        setSelectedFile(null);
+        setContentTitle("");
+        setContentDescription("");
+        setUploadError(null);
+        // Optionally refresh course data
+        await fetchMyCourses();
+      } else {
+        setUploadError(data.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading content:', error);
+      setUploadError('Failed to upload content');
+    }
+  };
+
+  const handleEditCourse = (courseId) => {
+    setSelectedCourseId(courseId);
+    setShowUploadForm(true);
   };
 
   const filteredCourses = courses.filter((course) =>
@@ -188,6 +240,59 @@ const InstructorLandingPage = () => {
           </div>
         )}
 
+        {showUploadForm && (
+          <div className="upload-content-form">
+            <h3>Upload Course Content</h3>
+            {uploadError && <div className="error-message">{uploadError}</div>}
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleUploadContent(selectedCourseId);
+            }}>
+              <div className="form-group">
+                <label htmlFor="contentTitle">Content Title</label>
+                <input
+                  type="text"
+                  id="contentTitle"
+                  value={contentTitle}
+                  onChange={(e) => setContentTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="contentDescription">Content Description</label>
+                <textarea
+                  id="contentDescription"
+                  value={contentDescription}
+                  onChange={(e) => setContentDescription(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="file">Upload File</label>
+                <input
+                  type="file"
+                  id="file"
+                  onChange={handleFileSelect}
+                  required
+                />
+                <small>Supported formats: JPEG, PNG, PDF, MP4 (Max size: 10MB)</small>
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="upload-button">
+                  <FaUpload /> Upload Content
+                </button>
+                <button 
+                  type="button" 
+                  className="cancel-button"
+                  onClick={() => setShowUploadForm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         <div className="courses-grid">
           {filteredCourses.map((course) => (
             <div key={course.id} className="course-card">
@@ -199,9 +304,12 @@ const InstructorLandingPage = () => {
                 </span>
               </div>
               <div className="course-actions">
-                <Link to={`/course/${course.id}/edit`} className="edit-link">
-                  Edit Course
-                </Link>
+                <button 
+                  onClick={() => handleEditCourse(course.id)} 
+                  className="edit-link"
+                >
+                  <FaUpload /> Add Content
+                </button>
                 <Link to={`/course/${course.id}/students`} className="students-link">
                   View Students
                 </Link>

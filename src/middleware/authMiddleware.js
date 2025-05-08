@@ -30,23 +30,31 @@ export const authenticateUser = async (req, res, next) => {
 };
 
 // Middleware to verify token
-export const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
-
-  console.log("verifyToken middleware - token received:", token); // Added logging
+export const verifyToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    console.log("verifyToken middleware - no token provided");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user info to the request object
+    const user = await User.findByPk(decoded.userId); // Ensure this matches the token payload
+    
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    req.user = {
+      id: user.id,
+      role: user.role,
+      // Add any other necessary user data
+    };
+
     next();
   } catch (error) {
-    console.error("verifyToken middleware - invalid token error:", error);
-    res.status(401).json({ message: "Invalid or expired token" });
+    console.error("Token verification error:", error);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 
@@ -69,6 +77,7 @@ export const blockIfNotVerified = (req, res, next) => {
 // Middleware for role-based access control (optional)
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
+    console.log("restrictTo middleware - user role:", req.user.role);
     if (!roles.includes(req.user.role)) {
       return next(new AppError("You do not have permission to perform this action", StatusCodes.FORBIDDEN));
     }

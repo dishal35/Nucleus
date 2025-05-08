@@ -17,7 +17,7 @@ import { setupWebSocketServer } from "./websockets/webSocketHandler.js";
 import session from "express-session";
 import passport from "./config/passport.js";
 import cors from "cors";
-
+import courseContentRoutes from "./routes/courseContentRoutes.js";
 dotenv.config();
 //allow cors
 const corsOptions = {
@@ -55,8 +55,7 @@ app.use("/api/enrollment", enrollmentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/auth", authRoutes);
-
-// Error handler middleware should be last
+app.use("/api/course-content", courseContentRoutes);
 app.use(errorHandler);
 
 const startServer = async () => {

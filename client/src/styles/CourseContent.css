@@ -1,0 +1,33 @@
+.course-content {
+  padding: 20px;
+}
+
+.content-list {
+  margin-top: 20px;
+}
+
+.content-item {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.content-item h3 {
+  margin: 0 0 10px 0;
+}
+
+.content-item a {
+  color: #007bff;
+  text-decoration: none;
+  margin-right: 15px;
+}
+
+.content-item button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+} 
