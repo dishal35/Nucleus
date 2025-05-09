@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaSearch, FaUser, FaPlus, FaChartLine, FaUsers, FaUpload } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import "../styles/LandingPage.css";
@@ -23,6 +23,7 @@ const InstructorLandingPage = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [contentTitle, setContentTitle] = useState("");
   const [contentDescription, setContentDescription] = useState("");
+  const navigate = useNavigate();
 
   const handleCreateClick = useCallback((e) => {
     e.preventDefault();
@@ -30,6 +31,11 @@ const InstructorLandingPage = () => {
     console.log("Create button clicked", new Date().toISOString());
     setShowCreateForm(prev => !prev);
   }, []);
+
+  const handleCourseClick = (courseId) => {
+    console.log('Navigating to course:', courseId);
+    navigate(`/course/${courseId}/manage`);
+  };
 
   useEffect(() => {
     console.log("Component mounted", new Date().toISOString());
@@ -102,13 +108,20 @@ const InstructorLandingPage = () => {
       formData.append('file', selectedFile);
       formData.append('title', contentTitle);
       formData.append('description', contentDescription);
-
+      console.log('Uploading content:', {
+        courseId,
+        title: contentTitle,
+        description: contentDescription,
+        file: selectedFile
+      });  
       const response = await fetchWithAuth(
         `http://localhost:5000/api/course-content/upload/${courseId}`,
         {
           method: 'POST',
           body: formData,
-          // Don't set Content-Type header, let the browser set it with the boundary
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          }
         }
       );
 
@@ -295,7 +308,12 @@ const InstructorLandingPage = () => {
 
         <div className="courses-grid">
           {filteredCourses.map((course) => (
-            <div key={course.id} className="course-card">
+            <div 
+              key={course.id} 
+              className="course-card"
+              onClick={() => handleCourseClick(course.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <h3>{course.title}</h3>
               <p>{course.description}</p>
               <div className="course-stats">
@@ -305,16 +323,34 @@ const InstructorLandingPage = () => {
               </div>
               <div className="course-actions">
                 <button 
-                  onClick={() => handleEditCourse(course.id)} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditCourse(course.id);
+                  }} 
                   className="edit-link"
                 >
                   <FaUpload /> Add Content
                 </button>
-                <Link to={`/course/${course.id}/students`} className="students-link">
+                <Link 
+                  to={`/course/${course.id}/students`} 
+                  className="students-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   View Students
                 </Link>
-                <Link to={`/course/${course.id}/analytics`} className="analytics-link">
+                <Link 
+                  to={`/course/${course.id}/analytics`} 
+                  className="analytics-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   Analytics
+                </Link>
+                <Link 
+                  to={`/course/${course.id}/chat`} 
+                  className="chat-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Chat with Students
                 </Link>
               </div>
             </div>

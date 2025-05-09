@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { verifyUserEnrollment } from "../utils/authUtils.js";
+import { verifyUserEnrollment, verifyInstructorAccess } from "../utils/authUtils.js";
 import { handleGroupChatMessage } from "./groupChatHandler.js";
 
 const courseRooms = new Map(); // Map to store course rooms and their WebSocket connections
@@ -26,9 +26,10 @@ export const setupWebSocketServer = (wss) => {
 
       // Validate user and course
       const isValid = await verifyUserEnrollment(userId, courseId);
-      if (!isValid) {
+      const isInstructor = await verifyInstructorAccess(userId, courseId);
+      if (!isValid && !isInstructor) {
         ws.close();
-        console.log(`❌ Connection closed: User ${userId} is not enrolled in course ${courseId}`);
+        console.log(`❌ Connection closed: User ${userId} is not allowed to chat in course ${courseId}`);
         return;
       }
 

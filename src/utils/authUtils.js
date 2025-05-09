@@ -39,3 +39,32 @@ export const verifyUserEnrollment = async (userId, courseId) => {
     return false;
   }
 };
+
+export const verifyInstructorAccess = async (userId, courseId) => {
+  try {
+    // Check if the user exists
+    const user = await User.findByPk(userId);
+    if (!user) {
+      console.log(`❌ User ${userId} does not exist`);
+      return false;
+    }
+
+    // Check if the course exists
+    const course = await Course.findByPk(courseId);
+    if (!course) {
+      console.log(`❌ Course ${courseId} does not exist`);
+      return false;
+    }
+
+    // Check if the user is the instructor of the course
+    if (course.instructorId !== userId) {
+      console.log(`❌ User ${userId} is not the instructor of course ${courseId}`);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("❌ Error verifying instructor access:", error);
+    return false;
+  }
+};

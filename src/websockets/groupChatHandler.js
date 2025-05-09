@@ -1,4 +1,4 @@
-import { verifyUserEnrollment } from "../utils/authUtils.js";
+import { verifyUserEnrollment, verifyInstructorAccess } from "../utils/authUtils.js";
 
 export const handleGroupChatMessage = async (ws, message, courseId, courseRooms) => {
   try {
@@ -10,7 +10,8 @@ export const handleGroupChatMessage = async (ws, message, courseId, courseRooms)
 
       // Verify if the sender is enrolled in the course
       const isValid = await verifyUserEnrollment(sender, courseId);
-      if (!isValid) {
+      const isInstructor = await verifyInstructorAccess(sender, courseId);
+      if (!isValid && !isInstructor) {
         console.log(`❌ Unauthorized message from ${sender} in course ${courseId}`);
         return;
       }

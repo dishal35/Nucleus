@@ -77,13 +77,18 @@ router.get(
           userId: req.user.id
         }
       });
+      const isInstructor = await Course.findOne({
+        where: {
+          id: courseId,
+          instructorId: req.user.id
+        }
+      });
 
-      if (!isEnrolled) {
+      if (!isEnrolled && !isInstructor) {
         return res.status(403).json({
-          message: 'You are not enrolled in this course'
+          message: 'You are not authorized to access this course'
         });
-      } 
-
+      }
       const content = await CourseContent.findAll({
         where: { courseId }
       });

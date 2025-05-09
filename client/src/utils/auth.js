@@ -1,10 +1,11 @@
 export async function refreshAccessToken() {
   try {
-    const response = await fetch("http://localhost:5000/api/user/refresh-token", {
+    const response = await fetch("http://localhost:5000/api/auth/refresh-token", {
       method: "POST",
       credentials: "include", // Important: send cookies
       headers: {
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Content-Type": "application/json"
       }
     });
     const data = await response.json();

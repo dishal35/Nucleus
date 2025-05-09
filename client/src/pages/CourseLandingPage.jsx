@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { fetchWithAuth } from '../utils/fetchWithAuth';
+import { useAuth } from '../context/AuthContext';
 import '../styles/CourseLandingPage.css';
+import Chat from '../components/Chat';
 
 const CourseLandingPage = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [course, setCourse] = useState(null);
     const [courseContent, setCourseContent] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isEnrolled, setIsEnrolled] = useState(false);
+    const [showChat, setShowChat] = useState(false);
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
@@ -76,6 +80,9 @@ const CourseLandingPage = () => {
             setError(error.message);
         }
     };
+    const toggleChat = () => {
+        setShowChat((prev) => !prev);
+    };
 
     if (loading) {
         return <div className="course-landing-loading">Loading...</div>;
@@ -130,6 +137,8 @@ const CourseLandingPage = () => {
                                     </a>
                                 </div>
                             ))}
+                            <button onClick={toggleChat} className="chat-button">{showChat ? 'Close Chat' : 'Start Chat'}</button>
+                            {showChat && <Chat courseId={courseId} userId={user.id} />}
                         </div>
                     )}
                 </section>

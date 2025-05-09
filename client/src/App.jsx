@@ -11,6 +11,7 @@ import ResetPass from "./components/ResetPass";
 import "./App.css";
 import VerifyEmail from "./components/verifyEmail";
 import CourseLandingPage from "./pages/CourseLandingPage";
+import CourseManagementPage from "./pages/CourseManagementPage";
 
 // Protected route component for authenticated users
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -103,15 +104,43 @@ const App = () => {
           } />
           <Route path="/instructor" element={
             <ProtectedRoute allowedRoles={["instructor"]}>
-              <>
-                <InstructorLandingPage />
-              </>
+              <InstructorLandingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/instructor/:courseId" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <CourseLandingPage />
             </ProtectedRoute>
           } />
           <Route path="/verify-email" element={
             <PublicRoute>
               <VerifyEmail />
             </PublicRoute>
+          } />
+
+          {/* Instructor routes */}
+          <Route path="/course/:courseId/manage" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <CourseManagementPage />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/course/:courseId/chat" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <CourseManagementPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/course/:courseId/students" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <CourseManagementPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/course/:courseId/analytics" element={
+            <ProtectedRoute allowedRoles={["instructor"]}>
+              <CourseManagementPage />
+            </ProtectedRoute>
           } />
 
           {/* Fallback route */}
