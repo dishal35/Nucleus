@@ -39,6 +39,20 @@ const upload = multer({
   }
 });
 
+const deleteFileFromS3 = async (key) => {
+  const command = new DeleteObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key
+  }); 
+  try{
+    await s3Client.send(command);
+    console.log(`File ${key} deleted from S3`);
+  }catch(error){
+    console.error('Error deleting file from S3:', error);
+    throw error;
+  }
+}
+
 const getPresignedUrl=async(key)=>{
   const command=new GetObjectCommand({
     Bucket:process.env.AWS_BUCKET_NAME,

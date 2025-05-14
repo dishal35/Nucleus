@@ -117,8 +117,15 @@ router.delete(
   restrictTo('instructor'),
   async (req, res) => {
     try {
-      // Implement deletion logic
-      // Remember to delete from both S3 and your database
+      const { courseId, contentId } = req.params;
+      const content = await CourseContent.findOne({
+        where: { id: contentId, courseId }
+      });
+      if (!content) {
+        return res.status(404).json({ message: 'Content not found' });
+      }
+      await deleteFileFromS3(content.key);
+      await content.destroy();
       res.json({ message: 'Content deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting content' });

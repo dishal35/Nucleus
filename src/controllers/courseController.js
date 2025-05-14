@@ -162,7 +162,7 @@ export const updateCourse = async (req, res, next) => {
 
 export const deleteCourse = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id } = req.body;
 
     // Find the course by ID
     const course = await Course.findByPk(id);

@@ -17,7 +17,7 @@ validate,
 router.get("/get", authenticateUser, getCourses);
 router.get("/get/:id", authenticateUser, getCourseById);
 router.post("/update", authenticateUser, restrictTo("instructor"), updateCourse);
-router.delete("/delete", authenticateUser, restrictTo("instructor"), deleteCourse);
+router.delete("/delete/:id", authenticateUser, restrictTo("instructor"), deleteCourse);
 router.get("/enrolled", authenticateUser, restrictTo("student"), getEnrolledCourses);
 router.get("/search",searchCourses);
 

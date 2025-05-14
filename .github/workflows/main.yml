@@ -1,0 +1,141 @@
+name: CI/CD Pipeline
+
+# Trigger the workflow on push and pull requests to main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Environment variables used across jobs
+env:
+  DOCKER_REGISTRY: docker.io
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  # Test job - Run tests for both frontend and backend
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      # Install and test backend
+      - name: Test Backend
+        run: |
+          cd .
+          npm install
+          npm test
+        
+      # Install and test frontend
+      - name: Test Frontend
+        run: |
+          cd client
+          npm install
+          npm test
+        env:
+          CI: true
+
+  # Build and push Docker images
+  build:
+    needs: test  # Only build if tests pass
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # Build and push Frontend image
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v2
+        with:
+          context: ./client
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/nucleus-frontend:latest
+
+      # Build and push Backend image
+      - name: Build and push Backend
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/nucleus-backend:latest
+
+      # Build and push NGINX image
+      - name: Build and push NGINX
+        uses: docker/build-push-action@v2
+        with:
+          context: ./nginx
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/nucleus-nginx:latest
+
+  # Deploy to production (example using Docker Compose)
+  deploy:
+    needs: build  # Only deploy if build succeeds
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Only deploy on main branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Copy files to production server
+      - name: Copy files to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/app"
+
+      # Deploy using Docker Compose
+      - name: Deploy to production
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /app
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d
+
+  # Notify on success or failure
+  notify:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify Success
+        if: ${{ success() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: 'Deployment successful! 🚀'
+          SLACK_COLOR: 'good'
+
+      - name: Notify Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_MESSAGE: 'Deployment failed! ❌'
+          SLACK_COLOR: 'danger' 
