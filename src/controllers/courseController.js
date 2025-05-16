@@ -6,6 +6,8 @@ import Enrollment from "../models/Enrollment.js";
 import { setCache, getCache, invalidateCache } from "../utils/redisCache.js";
 import redisClient from "../utils/redis.js";
 import { Op } from "sequelize";
+import Review from "../models/Review.js";
+import sequelize from "sequelize";
 
 export const createCourse = async (req, res, next) => {
   try {
@@ -277,3 +279,117 @@ export const searchCourses = async (req, res, next) => {
     next(new AppError(error.message || "Internal Server Error",500))
   }
   }
+
+export const getInstructorDashboard = async (req, res, next) => {
+  try {
+    const instructorId = req.user.id;
+    const cacheKey = `instructor:dashboard:${instructorId}`;
+
+    // Try to get from cache first
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data: cachedData
+      });
+    }
+
+    // Get all courses by the instructor
+    const courses = await Course.findAll({
+      where: { instructorId },
+      include: [
+        {
+          model: User,
+          as: 'students',
+          attributes: ['id'],
+          through: { attributes: [] }
+        },
+        {
+          model: Review,
+          as: 'reviews',
+          attributes: ['id', 'rating']
+        }
+      ]
+    });
+
+    // Calculate statistics
+    const totalCourses = courses.length;
+    const totalStudents = courses.reduce((sum, course) => sum + course.students.length, 0);
+    
+    // Calculate average rating across all courses
+    const allRatings = courses.flatMap(course => 
+      course.reviews.map(review => review.rating)
+    ).filter(rating => rating != null);
+    
+    const averageRating = allRatings.length > 0
+      ? (allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length).toFixed(1)
+      : 0;
+
+    // Get recent reviews
+    const recentReviews = await Review.findAll({
+      where: {
+        courseId: courses.map(course => course.id)
+      },
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['fullName']
+        },
+        {
+          model: Course,
+          as: 'course',
+          attributes: ['title']
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 5
+    });
+
+    // Calculate enrollment trends (last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const enrollmentTrends = await Enrollment.findAll({
+      where: {
+        courseId: courses.map(course => course.id),
+        createdAt: {
+          [Op.gte]: sixMonthsAgo
+        }
+      },
+      attributes: [
+        [sequelize.fn('DATE_FORMAT', sequelize.col('createdAt'), '%Y-%m'), 'month'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: [sequelize.fn('DATE_FORMAT', sequelize.col('createdAt'), '%Y-%m')],
+      order: [[sequelize.fn('DATE_FORMAT', sequelize.col('createdAt'), '%Y-%m'), 'ASC']]
+    });
+
+    const dashboardData = {
+      totalCourses,
+      totalStudents,
+      averageRating,
+      recentReviews,
+      enrollmentTrends,
+      courses: courses.map(course => ({
+        id: course.id,
+        title: course.title,
+        studentCount: course.students.length,
+        reviewCount: course.reviews.length,
+        averageRating: course.reviews.length > 0
+          ? (course.reviews.reduce((sum, review) => sum + review.rating, 0) / course.reviews.length).toFixed(1)
+          : 0
+      }))
+    };
+
+    // Cache the dashboard data for 5 minutes
+    await setCache(cacheKey, dashboardData, 300);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: dashboardData
+    });
+  } catch (error) {
+    next(new AppError(error.message || "Internal Server Error", StatusCodes.INTERNAL_SERVER_ERROR));
+  }
+};

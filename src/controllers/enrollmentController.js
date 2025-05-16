@@ -7,7 +7,8 @@ import { invalidateCache } from "../utils/redisCache.js";
 export const enrollInCourse = async (req, res, next) => {
   try {
     const { courseId } = req.body;
-    const userId=req.user.id
+    const userId = req.user.id;
+    
     // Ensure the course exists
     const course = await Course.findByPk(courseId);
     if (!course) {
@@ -28,7 +29,10 @@ export const enrollInCourse = async (req, res, next) => {
       userId: req.user.id,
       courseId,
     });
-    await invalidateCache(`enrolled:user:${userId}`)
+
+    // Invalidate relevant caches
+    await invalidateCache(`enrolled:user:${userId}`);
+    await invalidateCache(`instructor:dashboard:${course.instructorId}`);
     
     const emailData = {
       to: req.user.email,
@@ -36,6 +40,7 @@ export const enrollInCourse = async (req, res, next) => {
       text: `You have successfully enrolled in the course: ${course.title}`,
     };
     await sendToQueue("emailQueue", emailData); 
+
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Enrolled in course successfully and email sent",

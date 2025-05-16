@@ -18,11 +18,36 @@ const Chat = ({ courseId, userId }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Fetch unread count
+    const fetchUnreadCount = async () => {
+        try {
+            const response = await fetchWithAuth(`/api/chat/${courseId}/unread`);
+            const data = await response.json();
+            if (response.ok) {
+                setUnreadCount(data.data.unreadCount);
+            }
+        } catch (error) {
+            console.error('Error fetching unread count:', error);
+        }
+    };
+
+    // Reset unread count
+    const resetUnreadCount = async () => {
+        try {
+            await fetchWithAuth(`/api/chat/${courseId}/unread/reset`, {
+                method: 'POST'
+            });
+            setUnreadCount(0);
+        } catch (error) {
+            console.error('Error resetting unread count:', error);
+        }
+    };
+
     useEffect(() => {
         // Fetch message history first
         const fetchMessageHistory = async () => {
             try {
-                const response = await fetchWithAuth(`http://localhost:5000/api/chat/${courseId}/history`);
+                const response = await fetchWithAuth(`/api/chat/${courseId}/history`);
                 const data = await response.json();
                 if (response.ok) {
                     setMessages(data.messages);
@@ -35,65 +60,51 @@ const Chat = ({ courseId, userId }) => {
         };
 
         fetchMessageHistory();
+        fetchUnreadCount();
 
-        // Initialize Socket.IO connection
-        const socket = io('http://localhost:5000', {
-            auth: {
-                token: localStorage.getItem('token')
-            },
-            query: {
-                courseId,
-                userId
-            }
-        });
+        // Initialize WebSocket connection
+        const socket = new WebSocket(`ws://localhost:5000/chat?token=${localStorage.getItem('token')}&courseId=${courseId}`);
 
-        // Socket event handlers
-        socket.on('connect', () => {
+        socket.onopen = () => {
             console.log('Connected to chat server');
             setIsConnected(true);
             setError(null);
-        });
+        };
 
-        socket.on('disconnect', () => {
+        socket.onclose = () => {
             console.log('Disconnected from chat server');
             setIsConnected(false);
-        });
+        };
 
-        socket.on('message', (message) => {
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
             setMessages(prev => [...prev, message]);
             scrollToBottom();
             
             // If the user is not the sender, increment unread count
-            if (message.senderId !== userId) {
+            if (message.sender !== userId) {
                 setUnreadCount(prev => prev + 1);
             }
-        });
+        };
 
-        socket.on('error', (error) => {
+        socket.onerror = (error) => {
             console.error('Socket error:', error);
             setError('Chat connection error. Please try again.');
-        });
-
-        // Handle offline messages when reconnecting
-        socket.on('offline_messages', (offlineMessages) => {
-            setMessages(prev => [...prev, ...offlineMessages]);
-            setUnreadCount(prev => prev + offlineMessages.length);
-            scrollToBottom();
-        });
+        };
 
         socketRef.current = socket;
 
         // Cleanup on unmount
         return () => {
             if (socket) {
-                socket.disconnect();
+                socket.close();
             }
         };
     }, [courseId, userId]);
 
     // Reset unread count when chat is focused
     const handleChatFocus = () => {
-        setUnreadCount(0);
+        resetUnreadCount();
     };
 
     const sendMessage = async (e) => {
@@ -103,17 +114,14 @@ const Chat = ({ courseId, userId }) => {
 
         try {
             const messageData = {
-                courseId,
-                senderId: userId,
-                senderName: user.fullName,
+                type: 'chat',
+                sender: userId,
                 content: newMessage,
+                courseId,
                 timestamp: new Date().toISOString()
             };
 
-            // Emit the message through socket
-            socketRef.current.emit('send_message', messageData);
-
-            // Clear input
+            socketRef.current.send(JSON.stringify(messageData));
             setNewMessage('');
         } catch (error) {
             console.error('Error sending message:', error);
@@ -147,7 +155,7 @@ const Chat = ({ courseId, userId }) => {
                 {messages.map((msg, index) => (
                     <div 
                         key={index} 
-                        className={`message ${msg.senderId === userId ? 'sent' : 'received'}`}
+                        className={`message ${msg.sender === userId ? 'sent' : 'received'}`}
                     >
                         <div className="message-header">
                             <span className="sender-name">{msg.senderName}</span>
